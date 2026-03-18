@@ -2,14 +2,15 @@ from flask import Flask, render_template_string, request
 import os
 import psycopg2
 
-app = Flask(_name_)
+app = Flask(__name__)
 
-DATABASE_URL = os.getenv("DATABASE_URL", "")
-HTML ="""
-<! doctype html>
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+HTML = """
+<!DOCTYPE html>
 <html>
 <head>
- <title>Buluttan Selam !< /title>
+ <title>Buluttan Selam!</title>
  <style>
   body { font-family: Arial; text-align: center; padding: 50px; background: #eef2f3; }
   h1 { color: #333; }
@@ -18,17 +19,17 @@ HTML ="""
   button { padding: 10px 15px; background: #4CAF50; color: white; border: none; border-radius: 6px; cursor: pointer; }
   ul { list-style: none; padding: 0; }
   li { background: white; margin: 5px auto; width: 200px; padding: 8px; border-radius: 5px; }
-</style>
+ </style>
 </head>
 <body>
- <h1>Buluttan Selam !< /h1>
-  <p>Adını yaz, selamını bırak </p>
-  <form method="POST">
+ <h1>Buluttan Selam!</h1>
+ <p>Adını yaz, selamını bırak</p>
+ <form method="POST">
    <input type="text" name="isim" placeholder="Adını yaz" required>
    <button type="submit">Gönder</button>
-  </form>
-  <h3>Ziyaretciler :< /h3>
-  <ul>
+ </form>
+ <h3>Ziyaretçiler:</h3>
+ <ul>
   {% for ad in isimler %}
    <li>{{ ad }}</li>
   {% endfor %}
@@ -36,14 +37,21 @@ HTML ="""
 </body>
 </html>
 """
+
 def connect_db():
-conn = psycopg2.connect(DATABASE_URL)
-return conn
+    return psycopg2.connect(DATABASE_URL)
+
 @app.route("/", methods=["GET", "POST"])
 def index():
     conn = connect_db()
     cur = conn.cursor()
-    cur.execute("CREATE TABLE IF NOT EXISTS ziyaretciler (id SERIAL PRIMARY KEY, isim TEXT)")
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS ziyaretciler (
+            id SERIAL PRIMARY KEY,
+            isim TEXT
+        )
+    """)
 
     if request.method == "POST":
         isim = request.form.get("isim")
@@ -56,6 +64,7 @@ def index():
 
     cur.close()
     conn.close()
+
     return render_template_string(HTML, isimler=isimler)
 
 if __name__ == "__main__":
